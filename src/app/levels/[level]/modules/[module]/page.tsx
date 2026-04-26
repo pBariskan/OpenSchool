@@ -30,7 +30,7 @@ export default async function ModulePage({
   return (
     <main>
       <section className="border-b border-[var(--line)] bg-[var(--panel)]">
-        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+        <div className="mx-auto max-w-[1680px] px-4 py-6 sm:px-6 lg:px-8">
           <Link
             href={`/levels/${level.id}`}
             className="focus-ring inline-flex items-center gap-2 rounded-lg border border-[var(--line)] bg-white px-3 py-2 text-sm font-black"
@@ -38,7 +38,7 @@ export default async function ModulePage({
             <ArrowLeft size={16} aria-hidden="true" />
             {level.name}
           </Link>
-          <div className="mt-7 grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
+          <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
             <div>
               <p className="text-sm font-black uppercase tracking-normal text-[var(--teal-dark)]">
                 {level.label} · {module.number}

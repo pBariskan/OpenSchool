@@ -118,7 +118,7 @@ export function ExplorerModuleFlow({
   }
 
   return (
-    <section className="mx-auto grid max-w-7xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+    <section className="mx-auto grid max-w-[1680px] gap-5 px-4 py-6 sm:px-6 lg:grid-cols-[minmax(0,1fr)_300px] lg:px-8">
       <div className="grid gap-6">
         <section className="rounded-lg border border-[var(--line)] bg-[var(--panel)] p-5">
           <div className="flex items-start gap-3">
@@ -156,7 +156,7 @@ export function ExplorerModuleFlow({
         )}
       </div>
 
-      <aside className="rounded-lg border border-[var(--line)] bg-[var(--panel)] p-5 lg:sticky lg:top-4 lg:self-start">
+      <aside className="rounded-lg border border-[var(--line)] bg-[var(--panel)] p-4 lg:sticky lg:top-4 lg:self-start">
         <div className="flex items-center gap-3">
           <span className="grid size-10 place-items-center rounded-lg bg-[var(--ink)] text-white">
             <BookOpen size={20} aria-hidden="true" />
@@ -537,13 +537,14 @@ function M1ExplainVisual({ screen }: { screen: number }) {
 }
 
 function M1SpamSimulation({ onDone }: { onDone: () => void }) {
-  const [rule, setRule] = useState("");
+  const [keyword, setKeyword] = useState("");
   const [ruleTested, setRuleTested] = useState(false);
   const [accuracy, setAccuracy] = useState(40);
   const [trained, setTrained] = useState(0);
   const aiReady = accuracy >= 94;
-  const normalizedRule = rule.toLowerCase();
-  const catchesCurrent = ["urgent", "claim", "prize"].some((word) => normalizedRule.includes(word));
+  const normalizedKeyword = keyword.trim().toLowerCase();
+  const currentEmail = "urgent: claim your prize before midnight";
+  const catchesCurrent = Boolean(normalizedKeyword) && currentEmail.includes(normalizedKeyword);
 
   function testRule() {
     setRuleTested(true);
@@ -559,20 +560,20 @@ function M1SpamSimulation({ onDone }: { onDone: () => void }) {
       <p className="text-xs font-black uppercase tracking-normal text-[#785115]">Simulation</p>
       <h2 className="mt-2 text-3xl font-black tracking-normal">Rules break. Learning generalises.</h2>
       <p className="mt-3 max-w-3xl text-base font-bold leading-7 text-[var(--muted)]">
-        You are comparing two ways to catch spam. First, try a hand-written keyword rule. Then train the learning-based filter with examples and compare what each approach can handle.
+        You are comparing two ways to catch spam. First, try a hand-written keyword filter. Then train the learning-based filter with examples and compare what each approach can handle.
       </p>
       <div className="mt-6 grid gap-4 lg:grid-cols-2">
         <div className="rounded-lg border border-[var(--line)] bg-white p-4">
           <div className="flex items-center gap-2">
             <Mail size={19} aria-hidden="true" />
-            <h3 className="text-xl font-black">Rule-based spam filter</h3>
+            <h3 className="text-xl font-black">Keyword spam filter</h3>
           </div>
           <p className="mt-3 text-sm font-bold leading-6 text-[var(--muted)]">
-            A rule-based system only checks the exact rule you write. Try a keyword like <span className="font-mono text-[var(--ink)]">Urgent</span>, <span className="font-mono text-[var(--ink)]">claim</span>, or <span className="font-mono text-[var(--ink)]">prize</span>.
+            This system only checks exact words. Add one keyword like <span className="font-mono text-[var(--ink)]">urgent</span>, <span className="font-mono text-[var(--ink)]">claim</span>, or <span className="font-mono text-[var(--ink)]">prize</span>.
           </p>
           <div className="mt-4 grid gap-2 text-sm">
-            {["IF 'CLICK NOW' → spam", "IF 'free money' → spam", "IF 'lottery' → spam"].map((item) => (
-              <p key={item} className="rounded-md bg-[var(--background)] p-2 font-mono">{item}</p>
+            {["CLICK NOW", "free money", "lottery"].map((item) => (
+              <p key={item} className="rounded-md bg-[var(--background)] p-2 font-mono">keyword: {item}</p>
             ))}
           </div>
           <div className="mt-4 rounded-lg border border-[var(--line)] p-3">
@@ -580,36 +581,36 @@ function M1SpamSimulation({ onDone }: { onDone: () => void }) {
             <p className="mt-2 font-bold">Urgent: claim your prize before midnight</p>
           </div>
           <input
-            value={rule}
+            value={keyword}
             onChange={(event) => {
-              setRule(event.target.value);
+              setKeyword(event.target.value);
               setRuleTested(false);
             }}
             className="focus-ring mt-4 w-full rounded-lg border border-[var(--line)] bg-white px-3 py-2"
-            placeholder="Example: IF 'Urgent' → spam"
+            placeholder="Enter one keyword, e.g. urgent"
           />
           <button
             type="button"
             onClick={testRule}
-            disabled={rule.trim().length < 3}
+            disabled={keyword.trim().length < 3}
             className="focus-ring mt-3 rounded-lg bg-[var(--ink)] px-4 py-3 text-sm font-black text-white disabled:opacity-45"
           >
-            Run this rule
+            Test keyword
           </button>
           {ruleTested ? (
             <div className="mt-4 grid gap-3">
               <div className={`rounded-lg p-3 text-sm font-bold ${catchesCurrent ? "bg-[rgba(19,127,114,0.1)] text-[var(--teal-dark)]" : "bg-[rgba(219,91,69,0.1)] text-[var(--coral)]"}`}>
-                {catchesCurrent ? "Good: your rule catches this exact spam email." : "This rule does not catch the current spam email."}
+                {catchesCurrent ? "Good: this keyword catches the current spam email." : "This keyword does not catch the current spam email."}
               </div>
               <div className="rounded-lg bg-[rgba(219,91,69,0.1)] p-3">
-                <p className="text-sm font-black text-[var(--coral)]">But now test the same rule on tomorrow&apos;s inbox:</p>
+                <p className="text-sm font-black text-[var(--coral)]">But now test the same keyword on tomorrow&apos;s inbox:</p>
                 <ul className="mt-2 grid gap-2 text-sm font-bold leading-6">
-                  <li>Spam changed wording: &quot;Important: collect your reward before midnight&quot; → escapes your keyword rule.</li>
+                  <li>Spam changed wording: &quot;Important: collect your reward before midnight&quot; → escapes the keyword.</li>
                   <li>Normal message: &quot;Urgent: your teacher moved tomorrow&apos;s meeting&quot; → may get wrongly marked as spam.</li>
                 </ul>
               </div>
               <p className="rounded-lg bg-[var(--background)] p-3 text-sm font-black">
-                Lesson: one manual rule can catch one phrase, but people can invent endless new phrases. You end up chasing language forever.
+                Lesson: one keyword can catch one phrase, but people can invent endless new phrases. You end up chasing language forever.
               </p>
             </div>
           ) : null}
