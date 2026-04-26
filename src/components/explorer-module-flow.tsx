@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
   ArrowRight,
@@ -20,6 +21,7 @@ import {
 } from "lucide-react";
 import { ActivityPlayground } from "@/components/activity-playground";
 import { CompletionControls } from "@/components/completion-controls";
+import { useProgress } from "@/components/progress-provider";
 import { type Module } from "@/data/curriculum";
 
 const phaseTone = {
@@ -856,9 +858,12 @@ const finalCheckpointOptions = [
 ] as const;
 
 function M1Review({ lessonKey }: { lessonKey: string }) {
+  const progress = useProgress();
   const [choice, setChoice] = useState<(typeof finalCheckpointOptions)[number] | null>(null);
   const [checked, setChecked] = useState(false);
   const passed = checked && choice?.correct;
+  const moduleComplete = progress.isLessonComplete(lessonKey);
+  const canFinish = passed || moduleComplete;
 
   return (
     <div>
@@ -929,12 +934,30 @@ function M1Review({ lessonKey }: { lessonKey: string }) {
           </button>
         ) : null}
       </div>
-      {passed ? (
+      {canFinish ? (
         <div className="mt-6 rounded-lg border border-[var(--line)] bg-white p-4">
           <p className="font-black">Finish</p>
-          <p className="mt-2 text-sm leading-6 text-[var(--muted)]">Mark the module complete. This saves progress locally.</p>
-          <div className="mt-4">
-            <CompletionControls lessonKey={lessonKey} />
+          <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
+            {moduleComplete ? "This module is complete. You can continue to the next module." : "Mark the module complete. This saves progress locally."}
+          </p>
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <button
+              type="button"
+              onClick={() => progress.toggleLesson(lessonKey)}
+              className="focus-ring inline-flex items-center justify-center gap-2 rounded-lg bg-[var(--ink)] px-4 py-3 text-sm font-black text-white"
+            >
+              <CheckCircle2 size={16} aria-hidden="true" />
+              {moduleComplete ? "Completed" : "Mark complete"}
+            </button>
+            {moduleComplete ? (
+              <Link
+                href="/levels/explorer/modules/machines-see-world"
+                className="focus-ring inline-flex items-center justify-center gap-2 rounded-lg bg-[var(--teal)] px-4 py-3 text-sm font-black text-white"
+              >
+                Move to module 2: How Machines See the World
+                <ArrowRight size={16} aria-hidden="true" />
+              </Link>
+            ) : null}
           </div>
         </div>
       ) : null}
