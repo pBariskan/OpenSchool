@@ -309,7 +309,15 @@ function M1HookGate({
 }
 
 function WhatIsAiLesson({ hookAnswer, lessonKey }: { hookAnswer: string; lessonKey: string }) {
+  const progress = useProgress();
+  const moduleComplete = progress.isLessonComplete(lessonKey);
   const [phaseIndex, setPhaseIndex] = useState(0);
+  const [maxUnlockedPhase, setMaxUnlockedPhase] = useState(moduleComplete ? m1Phases.length - 1 : 0);
+
+  function unlockPhase(nextIndex: number) {
+    setMaxUnlockedPhase((current) => Math.max(current, nextIndex));
+    setPhaseIndex(nextIndex);
+  }
 
   return (
     <section className="rounded-lg border border-[var(--line)] bg-[var(--panel)] p-4 sm:p-6">
@@ -317,12 +325,13 @@ function WhatIsAiLesson({ hookAnswer, lessonKey }: { hookAnswer: string; lessonK
         phases={m1Phases}
         current={phaseIndex}
         onSelect={setPhaseIndex}
+        maxUnlocked={maxUnlockedPhase}
       />
       <div className="mt-6">
-        {phaseIndex === 0 ? <M1Explain onDone={() => setPhaseIndex(1)} /> : null}
-        {phaseIndex === 1 ? <M1SpamSimulation onDone={() => setPhaseIndex(2)} /> : null}
-        {phaseIndex === 2 ? <M1Recall onDone={() => setPhaseIndex(3)} hookAnswer={hookAnswer} /> : null}
-        {phaseIndex === 3 ? <M1SortingGame onDone={() => setPhaseIndex(4)} /> : null}
+        {phaseIndex === 0 ? <M1Explain onDone={() => unlockPhase(1)} /> : null}
+        {phaseIndex === 1 ? <M1SpamSimulation onDone={() => unlockPhase(2)} /> : null}
+        {phaseIndex === 2 ? <M1Recall onDone={() => unlockPhase(3)} hookAnswer={hookAnswer} /> : null}
+        {phaseIndex === 3 ? <M1SortingGame onDone={() => unlockPhase(4)} /> : null}
         {phaseIndex === 4 ? <M1Review lessonKey={lessonKey} /> : null}
       </div>
     </section>
@@ -332,13 +341,14 @@ function WhatIsAiLesson({ hookAnswer, lessonKey }: { hookAnswer: string; lessonK
 function GenericInteractiveLesson({ module, activityKey }: { module: Module; activityKey: string }) {
   const phases = module.phaseDesign ?? [];
   const [phaseIndex, setPhaseIndex] = useState(0);
+  const [maxUnlockedPhase, setMaxUnlockedPhase] = useState(0);
   const phase = phases[phaseIndex];
 
   if (!phase) return null;
 
   return (
     <section className="rounded-lg border border-[var(--line)] bg-[var(--panel)] p-4 sm:p-6">
-      <PhaseStepper phases={phases.map((item) => item.title)} current={phaseIndex} onSelect={setPhaseIndex} />
+      <PhaseStepper phases={phases.map((item) => item.title)} current={phaseIndex} onSelect={setPhaseIndex} maxUnlocked={maxUnlockedPhase} />
       <article className="mt-6">
         <div className="flex flex-wrap items-center gap-3">
           <span className={`grid size-11 place-items-center rounded-lg text-sm font-black ${phaseTone[phase.id]}`}>
@@ -369,7 +379,11 @@ function GenericInteractiveLesson({ module, activityKey }: { module: Module; act
         <div className="mt-6 flex justify-end">
           <button
             type="button"
-            onClick={() => setPhaseIndex((current) => Math.min(phases.length - 1, current + 1))}
+            onClick={() => {
+              const nextIndex = Math.min(phases.length - 1, phaseIndex + 1);
+              setMaxUnlockedPhase((current) => Math.max(current, nextIndex));
+              setPhaseIndex(nextIndex);
+            }}
             className="focus-ring inline-flex items-center gap-2 rounded-lg bg-[var(--ink)] px-4 py-3 text-sm font-black text-white disabled:opacity-45"
             disabled={phaseIndex === phases.length - 1}
           >
@@ -386,26 +400,37 @@ function PhaseStepper({
   phases,
   current,
   onSelect,
+  maxUnlocked,
 }: {
   phases: readonly string[];
   current: number;
   onSelect: (index: number) => void;
+  maxUnlocked: number;
 }) {
   return (
     <div className="grid gap-2 sm:grid-cols-5">
-      {phases.map((phase, index) => (
-        <button
-          key={`${phase}-${index}`}
-          type="button"
-          onClick={() => onSelect(index)}
-          className={`focus-ring rounded-lg border px-3 py-2 text-left text-sm font-black ${
-            current === index ? "border-[var(--ink)] bg-[var(--ink)] text-white" : "border-[var(--line)] bg-white"
-          }`}
-        >
-          <span className="block text-xs opacity-70">Part {index + 1}</span>
-          {phase}
-        </button>
-      ))}
+      {phases.map((phase, index) => {
+        const locked = index > maxUnlocked;
+        return (
+          <button
+            key={`${phase}-${index}`}
+            type="button"
+            disabled={locked}
+            onClick={() => onSelect(index)}
+            className={`focus-ring rounded-lg border px-3 py-2 text-left text-sm font-black disabled:cursor-not-allowed ${
+              current === index
+                ? "border-[var(--ink)] bg-[var(--ink)] text-white"
+                : locked
+                  ? "border-[var(--line)] bg-[rgba(30,37,36,0.04)] text-[var(--muted)] opacity-65"
+                  : "border-[var(--line)] bg-white"
+            }`}
+          >
+            <span className="block text-xs opacity-70">Part {index + 1}</span>
+            {phase}
+            {locked ? <span className="mt-1 block text-xs font-black uppercase tracking-normal">Locked</span> : null}
+          </button>
+        );
+      })}
     </div>
   );
 }

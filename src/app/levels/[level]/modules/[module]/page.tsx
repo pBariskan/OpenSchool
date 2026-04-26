@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { ExplorerModuleFlow, LockedLevelNotice } from "@/components/explorer-module-flow";
+import { LockedLevelNotice } from "@/components/explorer-module-flow";
+import { ModuleAccessGate } from "@/components/module-access-gate";
 import { getModule, levels } from "@/data/curriculum";
 
 export function generateStaticParams() {
@@ -53,7 +54,7 @@ export default async function ModulePage({
       {level.access === "locked_future" ? (
         <LockedLevelNotice levelName={level.name} />
       ) : (
-        <ExplorerModuleFlow key={lessonKey} module={module} lessonKey={lessonKey} />
+        <ModuleAccessGate level={level} module={module} lessonKey={lessonKey} />
       )}
     </main>
   );
